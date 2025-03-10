@@ -275,17 +275,17 @@ pipeline {
                 script {
                     echo "Starting Helm uninstall process..."
 
-                    // Uninstall monitoring stack
-                    sh '''
-                        echo "Uninstalling Monitoring stack..."
-                        helm uninstall prometheus --namespace monitoring || true
-                        sleep 30
-                    '''
-
                     // Uninstall custom application
                     sh '''
                         echo "Uninstalling Application..."
                         helm uninstall taxi-booking --namespace taxi-app || true
+                        sleep 30
+                    '''
+                    
+                    // Uninstall monitoring stack
+                    sh '''
+                        echo "Uninstalling Monitoring stack..."
+                        helm uninstall prometheus --namespace monitoring || true
                         sleep 30
                     '''
 

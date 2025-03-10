@@ -279,32 +279,8 @@ pipeline {
                     // Uninstall custom application
                     sh '''
                         echo "Uninstalling Application..."
-                        helm uninstall taxi-booking --namespace taxi-app || true
-                        sleep 30
+                        helm list --namespace taxi-app
                     '''
-
-                    // Uninstall monitoring stack
-                    sh '''
-                        echo "Uninstalling Monitoring stack..."
-                        helm uninstall prometheus --namespace monitoring || true
-                        sleep 30
-                    '''
-
-                    // Ensure all resources are deleted before removing namespaces
-                    sh '''
-                        echo "Checking if resources are fully removed..."
-                        kubectl get all -n taxi-app || true
-                        kubectl get all -n monitoring || true
-                    '''
-
-                    // Delete namespaces if empty
-                    sh '''
-                        echo "Deleting namespaces..."
-                        kubectl delete ns taxi-app --ignore-not-found
-                        kubectl delete ns monitoring --ignore-not-found
-                    '''
-
-                    echo "Uninstallation and cleanup completed!"
                 }
             }
         }

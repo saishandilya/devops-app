@@ -281,8 +281,6 @@ pipeline {
                         echo "Uninstalling Application..."
                         helm list --namespace taxi-app
                         helm list --all-namespaces
-                        helm uninstall taxi-booking --namespace default || true
-                        helm uninstall taxi-booking-release --namespace default || true
                     '''
                 }
             }

@@ -252,10 +252,11 @@ pipeline {
                     
                     // Helm install or upgrade with values.yaml
                     sh '''
-                    helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
-                        --namespace monitoring \
-                        --create-namespace \
-                        -f ./helm-charts/monitoring-values.yaml
+                        helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
+                            --namespace monitoring \
+                            --create-namespace \
+                            -f ./helm-charts/monitoring-values.yaml
+                        sleep 30
                     '''
                     echo "Monitoring stack deployed successfully!"
                     
@@ -281,7 +282,7 @@ pipeline {
                         helm uninstall taxi-booking --namespace taxi-app || true
                         sleep 30
                     '''
-                    
+
                     // Uninstall monitoring stack
                     sh '''
                         echo "Uninstalling Monitoring stack..."

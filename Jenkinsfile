@@ -221,10 +221,10 @@ pipeline {
             }
             steps {
                 sh '''
-                    helm upgrade --install taxi-booking ./helm-charts --namespace {{ .Values.namespace }} --create-namespace
+                    helm upgrade --install taxi-booking ./helm-charts --create-namespace
                     sleep 30
                     kubectl get ns
-                    kubectl get all -n {{ .Values.namespace }}
+                    kubectl get all -n taxi-app
                 '''
             }
         }

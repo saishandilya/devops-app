@@ -280,6 +280,7 @@ pipeline {
                     sh '''
                         echo "Uninstalling Application..."
                         helm list --namespace taxi-app
+                        helm list --all-namespaces
                         kubectl get namespaces
                     '''
                 }

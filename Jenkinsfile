@@ -13,7 +13,7 @@ pipeline {
     }
 
     environment {
-        GIT_COMMIT = ""
+        GIT_COMMIT          = ""
         PATH                = "/opt/apache-maven-3.9.6/bin:$PATH"
         SONAR_TOKEN         = credentials('sonar-token')
         SONAR_PROJECT_KEY   = "taxiapp_taxibooking"
@@ -221,15 +221,12 @@ pipeline {
             }
             steps {
                 script {
-                    // Check if the namespace exists
-                    def namespaceExists = sh(script: 'kubectl get ns taxi-app --ignore-not-found', returnStatus: true) == 0
+                    // Ensure the namespace exists (create if it does not exist)
+                    sh 'kubectl get ns taxi-app || kubectl create ns taxi-app'
                     
-                    // Deploy application using Helm, remove --create-namespace if the namespace exists
-                    if (namespaceExists) {
-                        sh 'helm upgrade --install taxi-booking ./helm-charts --namespace taxi-app'
-                    } else {
-                        sh 'helm upgrade --install taxi-booking ./helm-charts --namespace taxi-app --create-namespace'
-                    }
+                    // Deploy the application using Helm
+                    sh 'helm upgrade --install taxi-booking ./helm-charts --namespace taxi-app'
+                    
                     sleep 30
                     sh 'kubectl get ns'
                     sh 'kubectl get all -n taxi-app'

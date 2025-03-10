@@ -219,12 +219,20 @@ pipeline {
                 expression { params.ACTION == 'deploy' }
             }
             steps {
-                sh '''
-                    helm upgrade --install <your-release-name> ./helm-charts
+                script {
+                    // Check if the namespace exists
+                    def namespaceExists = sh(script: 'kubectl get ns <your-namespace-name> --ignore-not-found', returnStatus: true) == 0
+                    
+                    // Deploy application using Helm, remove --create-namespace if the namespace exists
+                    if (namespaceExists) {
+                        sh 'helm upgrade --install <your-release-name> ./helm-charts --namespace <your-namespace-name>'
+                    } else {
+                        sh 'helm upgrade --install <your-release-name> ./helm-charts --namespace <your-namespace-name> --create-namespace'
+                    }
                     sleep 30
-                    kubectl get ns
-                    kubectl get all -n <your-namespace-name>
-                '''
+                    sh 'kubectl get ns'
+                    sh 'kubectl get all -n <your-namespace-name>'
+                }
             }
         }
 
@@ -251,10 +259,11 @@ pipeline {
                     
                     // Helm install or upgrade with values.yaml
                     sh '''
-                    helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
-                        --namespace monitoring \
-                        --create-namespace \
-                        -f ./helm-charts/monitoring-values.yaml
+                      helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
+                          --namespace monitoring \
+                          --create-namespace \
+                          -f ./helm-charts/monitoring-values.yaml
+                      sleep 30   
                     '''
                     echo "Monitoring stack deployed successfully!"
                     
@@ -274,17 +283,21 @@ pipeline {
                 script {
                     echo "Starting Helm uninstall process..."
 
+                    // Uninstall custom application
+                    sh '''
+                        echo "Listing all namespaces"
+                        helm list --all-namespaces
+
+                        echo "Uninstalling Application..."
+                        helm list --namespace <your-namespace-name>
+                        helm uninstall <your-release-name> --namespace <your-namespace-name> || true
+                        sleep 30
+                    '''
+
                     // Uninstall monitoring stack
                     sh '''
                         echo "Uninstalling Monitoring stack..."
                         helm uninstall prometheus --namespace monitoring || true
-                        sleep 30
-                    '''
-
-                    // Uninstall custom application
-                    sh '''
-                        echo "Uninstalling Application..."
-                        helm uninstall <your-release-name> --namespace <your-namespace-name> || true
                         sleep 30
                     '''
 

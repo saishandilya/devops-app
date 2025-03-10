@@ -221,10 +221,10 @@ pipeline {
             }
             steps {
                 sh '''
-                    helm upgrade --install taxi-booking ./helm-charts
+                    helm upgrade --install taxi-booking ./helm-charts --namespace {{ .Values.namespace }} --create-namespace
                     sleep 30
                     kubectl get ns
-                    kubectl get all -n taxi-app
+                    kubectl get all -n {{ .Values.namespace }}
                 '''
             }
         }
@@ -281,7 +281,8 @@ pipeline {
                         echo "Uninstalling Application..."
                         helm list --namespace taxi-app
                         helm list --all-namespaces
-                        kubectl get namespaces
+                        helm uninstall taxi-booking --namespace default || true
+                        helm uninstall taxi-booking-release --namespace default || true
                     '''
                 }
             }

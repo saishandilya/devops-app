@@ -220,12 +220,20 @@ pipeline {
                 expression { params.ACTION == 'deploy' }
             }
             steps {
-                sh '''
-                    helm upgrade --install taxi-booking ./helm-charts --namespace taxi-app --create-namespace
+                script {
+                    // Check if the namespace exists
+                    def namespaceExists = sh(script: 'kubectl get ns taxi-app --ignore-not-found', returnStatus: true) == 0
+                    
+                    // Deploy application using Helm, remove --create-namespace if the namespace exists
+                    if (namespaceExists) {
+                        sh 'helm upgrade --install taxi-booking ./helm-charts --namespace taxi-app'
+                    } else {
+                        sh 'helm upgrade --install taxi-booking ./helm-charts --namespace taxi-app --create-namespace'
+                    }
                     sleep 30
-                    kubectl get ns
-                    kubectl get all -n taxi-app
-                '''
+                    sh 'kubectl get ns'
+                    sh 'kubectl get all -n taxi-app'
+                }
             }
         }
 

@@ -221,12 +221,8 @@ pipeline {
             }
             steps {
                 script {
-                    // Ensure the namespace exists (create if it does not exist)
-                    sh 'kubectl get ns taxi-app || kubectl create ns taxi-app'
-                    
                     // Deploy the application using Helm
-                    sh 'helm upgrade --install taxi-booking ./helm-charts --namespace taxi-app'
-                    
+                    sh 'helm upgrade --install taxi-booking ./helm-charts --namespace taxi-app --create-namespace'
                     sleep 30
                     sh 'kubectl get ns'
                     sh 'kubectl get all -n taxi-app'

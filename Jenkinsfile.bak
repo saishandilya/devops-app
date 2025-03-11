@@ -220,15 +220,8 @@ pipeline {
             }
             steps {
                 script {
-                    // Check if the namespace exists
-                    def namespaceExists = sh(script: 'kubectl get ns <your-namespace-name> --ignore-not-found', returnStatus: true) == 0
-                    
-                    // Deploy application using Helm, remove --create-namespace if the namespace exists
-                    if (namespaceExists) {
-                        sh 'helm upgrade --install <your-release-name> ./helm-charts --namespace <your-namespace-name>'
-                    } else {
-                        sh 'helm upgrade --install <your-release-name> ./helm-charts --namespace <your-namespace-name> --create-namespace'
-                    }
+                    // Deploy the application using Helm
+                    sh 'helm upgrade --install <your-release-name> ./helm-charts --namespace <your-namespace-name> --create-namespace'
                     sleep 30
                     sh 'kubectl get ns'
                     sh 'kubectl get all -n <your-namespace-name>'

@@ -221,7 +221,12 @@ pipeline {
             }
             steps {
                 script {
-                    // Deploy the application using Helm
+                    // Deploy the application using Helm                   
+                    sh '''
+                        kubectl get ns
+                        kubectl get ns taxi-app
+                        kubectl delete ns taxi-app
+                    '''
                     sh 'helm upgrade --install taxi-booking ./helm-charts --namespace taxi-app --create-namespace'
                     sleep 30
                     sh 'kubectl get ns'

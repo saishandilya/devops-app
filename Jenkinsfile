@@ -221,8 +221,7 @@ pipeline {
             }
             steps {
                 script {
-                    sh 'kubectl get ns'
-                    sh 'helm upgrade --install taxi-booking ./helm-charts --namespace taxi-app --create-namespace'
+                    sh 'helm upgrade --install taxi-booking ./helm-charts --namespace taxi-app'
                     sleep 30
                     sh 'kubectl get ns'
                     sh 'kubectl get all -n taxi-app'

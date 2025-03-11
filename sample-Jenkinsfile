@@ -1,6 +1,6 @@
-def registry = "<your jfrog-registry url>"
-def imageNameJfrogArtifact = "<jfrog-docker-artifactory-name/app-name>"
-def imageNameDocker = "<docker-username/app-name>"
+def registry = "https://taxibookingapp.jfrog.io/"
+def imageNameJfrogArtifact = "taxi-docker-local/taxi-booking"
+def imageNameDocker = "saishandilya/taxi-booking"
 def dockerRegistry = "https://index.docker.io/v1/"
 def containerName = imageNameDocker.split('/')[1]
 def version   = "1.0.1"
@@ -16,12 +16,13 @@ pipeline {
         GIT_COMMIT          = ""
         PATH                = "/opt/apache-maven-3.9.6/bin:$PATH"
         SONAR_TOKEN         = credentials('sonar-token')
-        SONAR_PROJECT_KEY   = "<your sonar project key>"
-        SONAR_ORG           = "<your sonar organisation name>"
+        SONAR_PROJECT_KEY   = "taxiapp_taxibooking"
+        SONAR_ORG           = "taxiapp"
         AWS_REGION          = "us-east-1"
-        CLUSTER_NAME        = "<your existing cluster name>"
+        CLUSTER_NAME        = "eks-devops"
         KUBECONFIG          = "./kubeconfig"
     }
+
 
     stages {
         stage('Fetch Git Commit ID') {
@@ -112,8 +113,8 @@ pipeline {
                     def uploadSpec = """{
                         "files": [
                             {
-                                "pattern": "${env.WORKSPACE}/<jenkins pipeline name>/target/(*)",
-                                "target": "<repository prefix name>-libs-release-local/{1}",
+                                "pattern": "${env.WORKSPACE}/taxi-booking-app/target/(*)",
+                                "target": "taxi-libs-release-local/{1}",
                                 "flat": "true",
                                 "props": "${properties}"
                             }
@@ -220,11 +221,10 @@ pipeline {
             }
             steps {
                 script {
-                    // Deploy the application using Helm
-                    sh 'helm upgrade --install <your-release-name> ./helm-charts --namespace <your-namespace-name> --create-namespace' // remove --create-namespace if namespace exists
+                    sh 'helm upgrade --install taxi-booking ./helm-charts --namespace taxi-app --create-namespace'
                     sleep 30
                     sh 'kubectl get ns'
-                    sh 'kubectl get all -n <your-namespace-name>'
+                    sh 'kubectl get all -n taxi-app'
                 }
             }
         }
@@ -252,11 +252,11 @@ pipeline {
                     
                     // Helm install or upgrade with values.yaml
                     sh '''
-                      helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
-                          --namespace monitoring \
-                          --create-namespace \
-                          -f ./helm-charts/monitoring-values.yaml
-                      sleep 30   
+                        helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
+                            --namespace monitoring \
+                            --create-namespace \
+                            -f ./helm-charts/monitoring-values.yaml
+                        sleep 30
                     '''
                     echo "Monitoring stack deployed successfully!"
                     
@@ -282,8 +282,8 @@ pipeline {
                         helm list --all-namespaces
 
                         echo "Uninstalling Application..."
-                        helm list --namespace <your-namespace-name>
-                        helm uninstall <your-release-name> --namespace <your-namespace-name> || true
+                        helm list --namespace taxi-app
+                        helm uninstall taxi-booking --namespace taxi-app || true
                         sleep 30
                     '''
 
@@ -297,14 +297,14 @@ pipeline {
                     // Ensure all resources are deleted before removing namespaces
                     sh '''
                         echo "Checking if resources are fully removed..."
-                        kubectl get all -n <your-namespace-name> || true
+                        kubectl get all -n taxi-app || true
                         kubectl get all -n monitoring || true
                     '''
 
                     // Delete namespaces if empty
                     sh '''
                         echo "Deleting namespaces..."
-                        kubectl delete ns <your-namespace-name> --ignore-not-found
+                        kubectl delete ns taxi-app --ignore-not-found
                         kubectl delete ns monitoring --ignore-not-found
                         kubectl get ns
                     '''

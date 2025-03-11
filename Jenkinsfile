@@ -221,7 +221,8 @@ pipeline {
             }
             steps {
                 script {
-                    sh 'helm upgrade --install taxi-booking ./helm-charts --namespace taxi-app'
+                    sh 'kubectl get ns'
+                    sh 'helm upgrade --install taxi-booking ./helm-charts --namespace taxi-app --create-namespace'
                     sleep 30
                     sh 'kubectl get ns'
                     sh 'kubectl get all -n taxi-app'
@@ -306,6 +307,7 @@ pipeline {
                         echo "Deleting namespaces..."
                         kubectl delete ns taxi-app --ignore-not-found
                         kubectl delete ns monitoring --ignore-not-found
+                        kubectl get ns
                     '''
 
                     echo "Uninstallation and cleanup completed!"

@@ -221,7 +221,7 @@ pipeline {
             steps {
                 script {
                     // Deploy the application using Helm
-                    sh 'helm upgrade --install <your-release-name> ./helm-charts --namespace <your-namespace-name> --create-namespace'
+                    sh 'helm upgrade --install <your-release-name> ./helm-charts --namespace <your-namespace-name> --create-namespace' // remove --create-namespace if namespace exists
                     sleep 30
                     sh 'kubectl get ns'
                     sh 'kubectl get all -n <your-namespace-name>'
@@ -306,6 +306,7 @@ pipeline {
                         echo "Deleting namespaces..."
                         kubectl delete ns <your-namespace-name> --ignore-not-found
                         kubectl delete ns monitoring --ignore-not-found
+                        kubectl get ns
                     '''
 
                     echo "Uninstallation and cleanup completed!"

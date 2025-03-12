@@ -220,7 +220,6 @@ pipeline {
             }
             steps {
                 script {
-                    // Deploy the application using Helm
                     sh 'helm upgrade --install <your-release-name> ./helm-charts --namespace <your-namespace-name> --create-namespace' // remove --create-namespace if namespace exists
                     sleep 30
                     sh 'kubectl get ns'
@@ -252,58 +251,56 @@ pipeline {
                     
                     // Helm install or upgrade with values.yaml
                     sh '''
-                      helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
-                          --namespace monitoring \
-                          --create-namespace \
-                          -f ./helm-charts/monitoring-values.yaml
-                      sleep 30   
+                        helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
+                            --namespace monitoring \
+                            --create-namespace \
+                            -f ./helm-charts/monitoring-values.yaml
+                        sleep 30
                     '''
                     echo "Monitoring stack deployed successfully!"
                     
                     sh '''
-                        kubectl get ns
                         kubectl get all -n monitoring
                     '''
                 }
             }
         }
 
-        stage('Uninstall monitoring using helm') {
+        stage('Uninstall Monitoring Stack & Application using Helm') {
             when {
                 expression { params.ACTION == 'uninstall' }
             }
             steps {
                 script {
-                    echo "Starting Helm uninstall process..."
+                    echo "Initialising Helm uninstall Monitoring Stack and Application"
 
                     // Uninstall custom application
                     sh '''
-                        echo "Listing all namespaces"
+                        echo "List releases across all namespaces"
                         helm list --all-namespaces
 
-                        echo "Uninstalling Application..."
-                        helm list --namespace <your-namespace-name>
+                        echo "Uninstalling Application"
                         helm uninstall <your-release-name> --namespace <your-namespace-name> || true
                         sleep 30
                     '''
 
                     // Uninstall monitoring stack
                     sh '''
-                        echo "Uninstalling Monitoring stack..."
+                        echo "Uninstalling Monitoring stack"
                         helm uninstall prometheus --namespace monitoring || true
                         sleep 30
                     '''
 
                     // Ensure all resources are deleted before removing namespaces
                     sh '''
-                        echo "Checking if resources are fully removed..."
+                        echo "Checking if resources are fully removed"
                         kubectl get all -n <your-namespace-name> || true
                         kubectl get all -n monitoring || true
                     '''
 
                     // Delete namespaces if empty
                     sh '''
-                        echo "Deleting namespaces..."
+                        echo "Deleting namespaces"
                         kubectl delete ns <your-namespace-name> --ignore-not-found
                         kubectl delete ns monitoring --ignore-not-found
                         kubectl get ns

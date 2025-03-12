@@ -261,27 +261,26 @@ pipeline {
                     echo "Monitoring stack deployed successfully!"
                     
                     sh '''
-                        kubectl get ns
                         kubectl get all -n monitoring
                     '''
                 }
             }
         }
 
-        stage('Uninstall monitoring using helm') {
+        stage('Uninstall Monitoring Stack & Application using Helm') {
             when {
                 expression { params.ACTION == 'uninstall' }
             }
             steps {
                 script {
-                    echo "Starting Helm uninstall process..."
+                    echo "Initialising Helm uninstall Monitoring Stack and Application"
 
                     // Uninstall custom application
                     sh '''
-                        echo "Listing all namespaces"
+                        echo "List releases across all namespaces"
                         helm list --all-namespaces
 
-                        echo "Uninstalling Application..."
+                        echo "Uninstalling Application"
                         helm list --namespace taxi-app
                         helm uninstall taxi-booking --namespace taxi-app || true
                         sleep 30
@@ -289,21 +288,21 @@ pipeline {
 
                     // Uninstall monitoring stack
                     sh '''
-                        echo "Uninstalling Monitoring stack..."
+                        echo "Uninstalling Monitoring stack"
                         helm uninstall prometheus --namespace monitoring || true
                         sleep 30
                     '''
 
                     // Ensure all resources are deleted before removing namespaces
                     sh '''
-                        echo "Checking if resources are fully removed..."
+                        echo "Checking if resources are fully removed"
                         kubectl get all -n taxi-app || true
                         kubectl get all -n monitoring || true
                     '''
 
                     // Delete namespaces if empty
                     sh '''
-                        echo "Deleting namespaces..."
+                        echo "Deleting namespaces"
                         kubectl delete ns taxi-app --ignore-not-found
                         kubectl delete ns monitoring --ignore-not-found
                         kubectl get ns
